@@ -1,4 +1,4 @@
-import {readFileSync} from "fs";
+import { readFileSync } from "fs";
 import path from "path";
 
 const data = readFileSync("input.txt").toString().split("\n");
@@ -52,9 +52,9 @@ const calculateDirSize = (dir: string, memo: Map<string, number>): number => {
     memo.set(dir, files_size);
     return files_size;
   } else {
-    const remaining_size =
-        remaining_dirs.map((sub) => calculateDirSize(sub, memo))
-            .reduce((a, b) => a + b, 0);
+    const remaining_size = remaining_dirs
+      .map((sub) => calculateDirSize(sub, memo))
+      .reduce((a, b) => a + b, 0);
 
     const result = files_size + remaining_size;
     memo.set(dir, result);
@@ -63,18 +63,18 @@ const calculateDirSize = (dir: string, memo: Map<string, number>): number => {
 };
 
 let map_total_sizes = new Map<string, number>();
-const total_used = calculateDirSize('/', map_total_sizes);
-map_total_sizes.set('/', total_used)
+const total_used = calculateDirSize("/", map_total_sizes);
+map_total_sizes.set("/", total_used);
 const total_available = 70_000_000;
 const required = 30_000_000;
 
-const needed =  required - (total_available - total_used);
+const needed = required - (total_available - total_used);
 
 console.log("needed", needed);
 
 const result = Array.from(map_total_sizes.entries())
-    .filter(e => e[1] >= needed)
-    .reduce((e1, e2) => (e1[1] < e2[1]) ? e1 : e2);
+  .filter((e) => e[1] >= needed)
+  .reduce((e1, e2) => (e1[1] < e2[1] ? e1 : e2));
 
 console.log("result", result);
 process.exit(0);
