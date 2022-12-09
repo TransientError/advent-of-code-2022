@@ -1,4 +1,4 @@
-import { Err, Ok, Result } from "ts-results";
+import { Err, Ok, Result } from "ts-results-es";
 
 const safeParseInt = (s: string): Result<number, string> => {
   let result: number = parseInt(s);
