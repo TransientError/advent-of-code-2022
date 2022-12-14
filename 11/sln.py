@@ -72,7 +72,3 @@ inspections.sort()
 print(inspections)
 
 print(inspections[-1] * inspections[-2])
-
-
-
-
