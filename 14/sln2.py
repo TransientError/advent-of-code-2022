@@ -1,89 +1,97 @@
 from collections import defaultdict
 from pathlib import Path
-from typing import Dict
 
-Point = tuple[int, int]
 
-data = Path("input.txt").read_text().splitlines()
+class Cave:
+    X_SOURCE = 500
+    Y_SOURCE = 0
+    SOURCE = (X_SOURCE, Y_SOURCE)
 
-board: Dict[int, dict[int, str]] = defaultdict(lambda: defaultdict(lambda: "."))
+    layout: dict[int, dict[int, str]]
+    left_border: int
+    right_border: int
+    bottom_border: int
+    floor: int
 
-for line in data:
-    if line:
-        points = line.split(" -> ")
-        for i in range(len(points) - 1):
-            # start
-            s_x, s_y = (int(s) for s in points[i].split(","))
-            # end
-            e_x, e_y = (int(s) for s in points[i + 1].split(","))
+    def __init__(self, input: str) -> None:
+        self.layout = defaultdict(lambda: defaultdict(lambda: "."))
+        for line in input.splitlines():
+            if line:
+                points = line.split(" -> ")
+                for i in range(len(points) - 1):
+                    # start
+                    s_x, s_y = (int(s) for s in points[i].split(","))
+                    # end
+                    e_x, e_y = (int(s) for s in points[i + 1].split(","))
 
-            if s_x == e_x:
-                for i in range(min(s_y, e_y), max(s_y, e_y) + 1):
-                    board[s_x][i] = "#"
-            elif s_y == e_y:
-                for i in range(min(s_x, e_x), max(s_x, e_x) + 1):
-                    board[i][s_y] = "#"
+                    if s_x == e_x:
+                        for i in range(min(s_y, e_y), max(s_y, e_y) + 1):
+                            self.layout[s_x][i] = "#"
+                    elif s_y == e_y:
+                        for i in range(min(s_x, e_x), max(s_x, e_x) + 1):
+                            self.layout[i][s_y] = "#"
+                    else:
+                        raise Exception("Bad input")
+        self.layout[Cave.X_SOURCE][Cave.Y_SOURCE] = "+"
+
+        self.left_border = min(self.layout.keys())
+        self.right_border = max(self.layout.keys())
+        self.bottom_border = max(max(c for c in v.keys()) for v in self.layout.values())
+        self.floor = self.bottom_border + 2
+
+    def char_at_point(self, x: int, y: int) -> str:
+        return "#" if y == self.floor else self.layout[x][y]
+
+    def display(self):
+        for y in range(self.floor + 1):
+            line = []
+            for x in range(self.left_border, self.right_border + 1):
+                line.append(self.char_at_point(x, y))
+            print(line)
+
+        print("\n")
+
+    def restore_point(self, x: int, y: int):
+        self.layout[x][y] = "." if (x, y) != Cave.SOURCE else "+"
+
+    def drop_sand(self) -> bool:
+        position = Cave.SOURCE
+        self.layout[500][0] = "o"
+        while True:
+            p_x, p_y = position
+
+            if self.char_at_point(p_x, p_y + 1) == ".":
+                self.restore_point(p_x, p_y)
+                self.layout[p_x][p_y + 1] = "o"
+                position = p_x, p_y + 1
+
+            elif self.char_at_point(p_x - 1, p_y + 1) == ".":
+                self.restore_point(p_x, p_y)
+                self.layout[p_x - 1][p_y + 1] = "o"
+                position = p_x - 1, p_y + 1
+                self.left_border = min(self.left_border, p_x)
+
+            elif self.char_at_point(p_x + 1, p_y + 1) == ".":
+                self.restore_point(p_x, p_y)
+                self.layout[p_x + 1][p_y + 1] = "o"
+                position = p_x + 1, p_y + 1
+                self.right_border = max(self.right_border, p_x)
+
             else:
-                raise Exception("Bad input")
-
-source = (500, 0)
-board[500][0] = "+"
-lowest_x = min(board.keys())
-highest_x = max(board.keys())
-highest_y = max(max(c for c in v.keys()) for v in board.values())
-floor = highest_y + 2
-
-
-def get(board, x, y):
-    if y == floor:
-        return "#"
-    else:
-        return board[x][y]
-
-
-def display(board: Dict[int, dict[int, str]]):
-    for y in range(floor + 1):
-        line = []
-        for x in range(lowest_x, highest_x + 1):
-            line.append(get(board, x, y))
-        print(line)
-
-    print("\n")
-
-
-full = False
-iterations = 0
-while not full:
-    rested = False
-    position = source
-    while not rested:
-        # iterations += 1
-        p_x, p_y = position
-        if get(board, p_x, p_y + 1) == ".":
-            board[p_x][p_y] = "." if position != source else "+"
-            board[p_x][p_y + 1] = "o"
-            position = p_x, p_y + 1
-
-        elif get(board, p_x - 1, p_y + 1) == ".":
-            board[p_x][p_y] = "." if position != source else "+"
-            board[p_x - 1][p_y + 1] = "o"
-            position = p_x - 1, p_y + 1
-            lowest_x = min(lowest_x, p_x)
-
-        elif get(board, p_x + 1, p_y + 1) == ".":
-            board[p_x][p_y] = "." if position != source else "+"
-            board[p_x + 1][p_y + 1] = "o"
-            position = p_x + 1, p_y + 1
-            highest_x = max(highest_x, p_x)
-
-        else:
-            rested = True
-            if position == source:
-                full = True
+                if position == Cave.SOURCE:
+                    return True
                 break
 
+        return False
+
+
+data = Path("input.txt").read_text()
+cave = Cave(data)
+
+iterations = 1
+while not cave.drop_sand():
     iterations += 1
 
 
-display(board)
+cave.display()
 print(iterations)
