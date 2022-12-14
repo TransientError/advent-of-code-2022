@@ -67,7 +67,7 @@ fn run() -> Result<()> {
 
     let mut res = vec![];
     for i in 1..stacks.len() + 1 {
-        let c = stacks.get(&i).unwrap().last().unwrap().clone();
+        let c = stacks.get(&i).ok_or(anyhow!("")).unwrap().clone();
         res.push(c);
     }
 
