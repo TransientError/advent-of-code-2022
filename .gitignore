@@ -2,3 +2,4 @@ node_modules
 test-input.txt
 input.txt
 .env
+target
