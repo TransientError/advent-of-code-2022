@@ -4,7 +4,7 @@ from pathlib import Path
 import re
 
 
-data = Path("input.txt").read_text()
+data = Path("test-input.txt").read_text()
 names_to_node = {}
 
 
